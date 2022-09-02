@@ -1,13 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class Othello : MonoBehaviour
 {
     int _rows = 8;
 
     int _cloumns = 8;
+
+    [SerializeField]
+    string _record;
 
     [SerializeField]
     int _selectR = 0, _selectC = 0;
@@ -26,7 +29,16 @@ public class Othello : MonoBehaviour
 
     [SerializeField]
     Turn _turn = Turn.White;
-
+    [SerializeField]
+    GameObject _resultPanel;
+    [SerializeField]
+    Text _result;
+    [SerializeField]
+    Text _whiteScore;
+    [SerializeField]
+    Text _blackScore;
+    int WhiteCount = 0;
+    int BlackCount = 0;
     [SerializeField]
     Disc[,] _cells;
     // Start is called before the first frame update
@@ -51,6 +63,7 @@ public class Othello : MonoBehaviour
         _selectDisc = _cells[_selectR, _selectC];
 
         SetPredict();
+        Record();
     }
 
 
@@ -251,11 +264,11 @@ public class Othello : MonoBehaviour
         }
     }
 
-    void Result()
+    void CheckResult()
     {
         var noneCount = 0;
-        var WhiteCount = 0;
-        var BlackCount = 0;
+        WhiteCount = 0;
+        BlackCount = 0;
         for (int r = 0; r < _rows; r++)
         {
             for (int c = 0; c < _cloumns; c++)
@@ -268,15 +281,22 @@ public class Othello : MonoBehaviour
 
         if (noneCount == 0)
         {
-            if (WhiteCount - BlackCount > 0) { Debug.Log("White"); }
-            else if (WhiteCount - BlackCount < 0) { Debug.Log("Black"); }
-            else { Debug.Log("Draw"); }
+            if (WhiteCount - BlackCount > 0) { PushResult("White Win"); }
+            else if (WhiteCount - BlackCount < 0) { PushResult("Black Win"); }
+            else { PushResult("Draw"); }
         }
         else
         {
-            if (WhiteCount == 0) { Debug.Log("Black"); }
-            else if (BlackCount == 0) { Debug.Log("White"); }
+            if (WhiteCount == 0) { PushResult("Black Win"); }
+            else if (BlackCount == 0) { PushResult("White Win"); }
         }
+    }
+    void PushResult(string winner)
+    {
+        _resultPanel.SetActive(true);
+        _result.text = winner;
+        _whiteScore.text = $"White\n{WhiteCount}";
+        _blackScore.text = $"Black\n{BlackCount}";
     }
     private void Control()
     {
@@ -314,23 +334,79 @@ public class Othello : MonoBehaviour
         }
         else if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (_cells[_selectR, _selectC].State != State.CanSelect) { return; }
-
-            if (GetNeighbourCells(_selectR, _selectC))
-            {
-                _cells[_selectR, _selectC].State = _turn == Turn.White ? State.White : State.Black;
-                foreach (var cell in _changeCells)
-                {
-                    cell.State = _turn == Turn.White ? State.White : State.Black;
-                }
-                _turn = _turn == Turn.White ? Turn.Black : Turn.White;
-            }
-
-            _changeCells.Clear();
-
-            Result();
-            SetPredict();
-            PassCheck();
+            PushCell(_selectR, _selectC);
         }
     }
+
+    private void PushCell(int r, int c)
+    {
+        if (_cells[r, c].State != State.CanSelect) { return; }
+        RecordWrite(r, c);
+        if (GetNeighbourCells(r, c))
+        {
+            _cells[r, c].State = _turn == Turn.White ? State.White : State.Black;
+            foreach (var cell in _changeCells)
+            {
+                cell.State = _turn == Turn.White ? State.White : State.Black;
+            }
+            _turn = _turn == Turn.White ? Turn.Black : Turn.White;
+        }
+
+        _changeCells.Clear();
+
+        CheckResult();
+        SetPredict();
+        PassCheck();
+    }
+    public void GameReset()
+    {
+        for (int r = 0; r < _rows; r++)
+        {
+            for (int c = 0; c < _cloumns; c++)
+            {
+                if (r == 3 && c == 3 || r == 4 && c == 4) { _cells[r, c].State = State.White; }
+                else if (r == 3 && c == 4 || r == 4 && c == 3) { _cells[r, c].State = State.Black; }
+                else { _cells[r, c].State = State.None; }
+            }
+        }
+        _cells[4, 4].OnSelected(true);
+        _selectDisc = _cells[4, 4];
+
+        SetPredict();
+        _record = "";
+    }
+    void RecordWrite(int r, int c)
+    {
+        char j = 'A';
+        int count = 0;
+        while (count < c)
+        {
+            count++;
+            j++;
+        }
+
+        _record += $"{j}{r + 1}";
+    }
+    void Record()
+    {
+        if (_record == null || _record.Length % 2 != 0 || _record == "") { return; }
+        string a = "";
+        for (int i = 0; i < _record.Length - 1; i += 2)
+        {
+            a = _record.Substring(i, 2);
+
+            var row = int.Parse(a[1].ToString());
+            var count = 1;
+            var index = 'A';
+            while (index != a[0])
+            {
+                count++;
+                index++;
+            }
+            var col = count;
+            PushCell(row - 1, col - 1);
+        }
+        _record = _record.Substring(0, _record.Length / 2);
+    }
+
 }

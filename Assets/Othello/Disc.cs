@@ -57,12 +57,13 @@ public class Disc : MonoBehaviour
         _board.GetComponent<Renderer>().material = _normalMaterial;
         if (_state == State.None)
         {
+            GetComponent<Animator>().Play("None");
             _disc.SetActive(false);
             return;
         }
 
-        if (!_disc.activeSelf) { _disc.SetActive(true); }
-        var angles = _state == State.Black ? 0 : 180;
-        _disc.transform.rotation = Quaternion.Euler(angles, 0, 0);
+        var angles = !_disc.activeSelf ? _state == State.Black ? "Black" : "White" 
+            : _state == State.Black ? "TurnBlack" : "TurnWhite";
+        GetComponent<Animator>().Play(angles);
     }
 }
