@@ -342,21 +342,20 @@ public class Othello : MonoBehaviour
     {
         if (_cells[r, c].State != State.CanSelect) { return; }
         RecordWrite(r, c);
+        
         if (GetNeighbourCells(r, c))
         {
             _cells[r, c].State = _turn == Turn.White ? State.White : State.Black;
-            foreach (var cell in _changeCells)
+            for (int row = 0; row < _rows; row++)
             {
-                cell.State = _turn == Turn.White ? State.White : State.Black;
+                for (int cloumn = 0; cloumn < _cloumns; cloumn++)
+                {
+                    if (_cells[row, cloumn].State == State.CanSelect)
+                        _cells[row, cloumn].State = State.None;
+                }
             }
-            _turn = _turn == Turn.White ? Turn.Black : Turn.White;
+            StartCoroutine(CellTrun());
         }
-
-        _changeCells.Clear();
-
-        CheckResult();
-        SetPredict();
-        PassCheck();
     }
     public void GameReset()
     {
@@ -389,16 +388,19 @@ public class Othello : MonoBehaviour
     }
     void Record()
     {
-        if (_record == null || _record.Length % 2 != 0 || _record == "") { return; }
-        string a = "";
+        if (string.IsNullOrEmpty(_record) || _record.Length % 2 != 0) { return; }
+        string num = "";
         for (int i = 0; i < _record.Length - 1; i += 2)
         {
-            a = _record.Substring(i, 2);
+            num = _record.Substring(i, 2);
 
-            var row = int.Parse(a[1].ToString());
+            if (!char.IsLetter(num[0])) { return; }
+            if (!char.IsNumber(num[1])) { return; }
+            var row = int.Parse(num[1].ToString());
             var count = 1;
             var index = 'A';
-            while (index != a[0])
+            if (char.IsLower(num[0])) { _record = _record.Replace(num[0], char.ToUpper(num[0])); }
+            while (index != char.ToUpper(num[0]))
             {
                 count++;
                 index++;
@@ -408,5 +410,17 @@ public class Othello : MonoBehaviour
         }
         _record = _record.Substring(0, _record.Length / 2);
     }
-
+    IEnumerator CellTrun()
+    {
+        foreach (var cell in _changeCells.ToArray())
+        {
+            cell.State = _turn == Turn.White ? State.White : State.Black;
+            yield return new WaitForSeconds(0.2f);
+        }
+        _turn = _turn == Turn.White ? Turn.Black : Turn.White;
+        _changeCells.Clear();
+        CheckResult();
+        SetPredict();
+        PassCheck();
+    }
 }

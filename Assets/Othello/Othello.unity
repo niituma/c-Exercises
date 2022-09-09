@@ -668,7 +668,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -953,7 +953,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7123a348d8cb34468c4b3c498dedac4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _record: E6F6G6G7G8H8
+  _record: 
   _selectR: 4
   _selectC: 4
   _cell: {fileID: 8570881566723196731, guid: 7fa58cc248bb64242821f1ee98437df3, type: 3}
